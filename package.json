@@ -6,7 +6,7 @@
   "license": "BSD-3-Clause",
   "bugs": "https://github.com/RupertBarrow/rapido-docker/issues",
   "homepage": "https://github.com/RupertBarrow/rapido-docker",
-  "repository": "RupertBarrow/rapido-docker",
+  "repository": "RupertBarrow/rapido-sf-docker",
   "dependencies": {
     "fs-extra": "10.0.1",
     "shelljs": "0.8.5"

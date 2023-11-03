@@ -1,11 +1,11 @@
 # salesforcedx-cci Docker image with SFDX CLI and Cumulus CI
 
-Docker file which includes Salesforce DX and plugins, jq, and Cumulus CI, used to simplify Github Actions.
+Docker image with Salesforce sf CLI and rapido-sf-plugin, mainly for use in Github Actions.
 This was inspired by the Salesforce DX salesforce/salesforcedx Docker files at https://github.com/salesforcecli/sfdx-cli/tree/main/dockerfiles.
 
 ## Docker hub
 
-The docker image is published in the Docker hub at https://hub.docker.com/r/rupertbarrow/salesforcedx-cci
+The docker image is published in the Docker hub at https://hub.docker.com/r/rupertbarrow/rapido-sf-docker
 
 ## Contents
 
@@ -15,62 +15,25 @@ The docker image is published in the Docker hub at https://hub.docker.com/r/rupe
 - jq v1.6
 - prettier
 
-### SFDX CLI :
+### SF CLI :
 
-- sfdx v7.172.0
-- sf v1.49.0
+- sf v2.15.19
 
 ### SFDX plugins :
 
-- mshanemc/shane-sfdx-plugins v4.43.0
-
-### Cumulus CI :
-
-- CumulusCI cci v3.66.0
+- RupertBarrow/rapido-sf-plugin@1.0.24
 
 ## Usage
 
-Example of a Github Action to execute tests on every commit on a feature branch, with the Cumulus CI ci_feature flow :
-
-```
-# ./github/workflows/cci-feature.yml
-
-name: Feature Test (with Docker)
-
-on:
-  push:
-    branches:
-      - feature/**
-      - main
-
-jobs:
-  unit_tests:
-    name: "Run Apex tests"
-    runs-on: ubuntu-latest
-    container: rupertbarrow/salesforcedx-cci:3.66.0
-    steps:
-      - name: Run Cumulus ci_feature
-        env:
-          CUMULUSCI_SERVICE_github: '{"username": "<username>", "email": "<email>", "token": "<token>"}'
-        shell: bash
-        run: |
-          cci flow run ci_feature --org dev --delete-org
-      - name: Delete Scratch Org
-        if: always()
-        shell: bash
-        run: |
-          cci org scratch_delete dev
-```
+tbc
 
 ## Dockerfile details
 
 ```
-FROM salesforce/salesforcedx:7.172.0-full
+FROM heroku/heroku:22
 
 ENV SHELL /bin/bash
 ENV DEBIAN_FRONTEND=noninteractive
-ARG SALESFORCE_CLI_VERSION=7.172.0
-ARG SF_CLI_VERSION=1.27.0
 
 # Basic
 RUN apt update
@@ -79,31 +42,27 @@ RUN echo y | apt install software-properties-common
 # Get Git >= 2.18 : actions/checkout@v2 says "To create a local Git repository instead, add Git 2.18 or higher to the PATH"
 RUN add-apt-repository -y ppa:git-core/ppa
 RUN apt-get update
-RUN apt-get install git -y
+RUN apt-get install -y --no-install-recommends git \
+  && rm -rf /var/lib/apt/lists/*
 
-# Install Python
-RUN add-apt-repository ppa:deadsnakes/ppa
-RUN apt update
-RUN echo y | apt install python3.10
+# Install SF CLI
+RUN npm install -g @salesforce/cli
 
-# Install Pip
-RUN echo y | apt install python3.10-distutils
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
+# Install SF CLI rapido-sf-plugin
+RUN echo y | sf plugins:install rapido-sf-plugin@1.0.24
 
-# Install Cumulus CI
-RUN pip3 install cumulusci
+# Install Puppeteer dependencies
+# see https://stackoverflow.com/questions/64361897/puppeteer-not-working-on-vps-but-running-locally
+RUN apt-get install libnss3-dev libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libpangocairo-1.0-0 libgtk-3-0
 
-# Install SFDX plugins
-RUN echo y | sfdx plugins:install shane-sfdx-plugins@4.43.0
 
 # Installed versions
-RUN git --version
-RUN python3 --version
-RUN pip3 --version
-RUN cci version
-RUN sfdx --version
-RUN sf version
-RUN sfdx plugins --core
+RUN set -x && \
+  node -v && \
+  npm -v && \
+  git --version && \
+  sf version && \
+  sf plugins --core
 
 ENV SFDX_CONTAINER_MODE true
 ENV DEBIAN_FRONTEND=dialog
@@ -122,19 +81,16 @@ Create your own Docxker file based on this image, and add your plugins, update S
 
 ```
 # My new Docker file
-FROM rupertbarrow/salesforcedx-cci:1.172.0_3.66.0
+FROM rupertbarrow/rapido-sf-docker:latest
 
 ENV SHELL /bin/bash
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Update SFDX CLI to the latest version
-RUN sfdx update
+# Update SF CLI to the latest version
+RUN sf update
 
-# Update Cumulus CI to the latest version
-RUN pip3 upgrade cumulusci
-
-# Add SFDX plugins here
-RUN echo y | sfdx plugins:install sfdmu
+# Add SF plugins here
+RUN echo y | sf plugins:install sfdmu
 
 ENV SFDX_CONTAINER_MODE true
 ENV DEBIAN_FRONTEND=dialog

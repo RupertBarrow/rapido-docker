@@ -1,12 +1,12 @@
 {
-  "name": "rapido-sf-docker",
+  "name": "rapido-sf-cli",
   "description": "Docker image with Salesforce sf CLI and rapido-sf-plugin, mainly for use in Github Actions",
-  "version": "1.0.24",
+  "version": "1.0.24-alpha.10",
   "author": "Rupert Barrow",
   "license": "BSD-3-Clause",
   "bugs": "https://github.com/RupertBarrow/rapido-docker/issues",
   "homepage": "https://github.com/RupertBarrow/rapido-docker",
-  "repository": "RupertBarrow/rapido-sf-docker",
+  "repository": "RupertBarrow/rapido-docker",
   "dependencies": {
     "fs-extra": "10.0.1",
     "shelljs": "0.8.5"
